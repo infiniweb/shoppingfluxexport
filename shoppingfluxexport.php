@@ -446,16 +446,8 @@ class ShoppingFluxExport extends Module
             return;
         }
 
-        $sf_carriers_xml = $this->_callWebService('GetCarriers');
-
-        if (!isset($sf_carriers_xml->Response->Carriers->Carrier[0])) {
+        if (!($sf_carriers = $this->getCarriersFromSF())) {
             return;
-        }
-
-        $sf_carriers = array();
-
-        foreach ($sf_carriers_xml->Response->Carriers->Carrier as $carrier) {
-            $sf_carriers[] = (string)$carrier;
         }
 
         $html = '<h3>'.$this->l('Advanced Parameters').'</h3>
@@ -1539,11 +1531,11 @@ class ShoppingFluxExport extends Module
             $id_category = $id_category;
         } else {
             $row = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
-			SELECT cl.`name`, p.`id_category_default` as id_category, c.`id_parent` FROM `'._DB_PREFIX_.'product` p
-			LEFT JOIN `'._DB_PREFIX_.'category_lang` cl ON (p.`id_category_default` = cl.`id_category`)
-			LEFT JOIN `'._DB_PREFIX_.'category` c ON (p.`id_category_default` = c.`id_category`)
-			WHERE p.`id_product` = '.(int)$id_product.'
-			AND cl.`id_lang` = '.(int)$id_lang);
+            SELECT cl.`name`, p.`id_category_default` as id_category, c.`id_parent` FROM `'._DB_PREFIX_.'product` p
+            LEFT JOIN `'._DB_PREFIX_.'category_lang` cl ON (p.`id_category_default` = cl.`id_category`)
+            LEFT JOIN `'._DB_PREFIX_.'category` c ON (p.`id_category_default` = c.`id_category`)
+            WHERE p.`id_product` = '.(int)$id_product.'
+            AND cl.`id_lang` = '.(int)$id_lang);
     
             foreach ($row as $val) {
                 $ret[$val['id_category']] = $val['name'];
@@ -1554,22 +1546,22 @@ class ShoppingFluxExport extends Module
     
         while ($id_parent != 0 && $id_category != $id_parent) {
             $row = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
-				SELECT cl.`name`, c.`id_category`, c.`id_parent` FROM `'._DB_PREFIX_.'category_lang` cl
-				LEFT JOIN `'._DB_PREFIX_.'category` c ON (c.`id_category` = '.(int)$id_parent.')
-				WHERE cl.`id_category` = '.(int)$id_parent.'
-				AND cl.`id_lang` = '.(int)$id_lang);
+                SELECT cl.`name`, c.`id_category`, c.`id_parent` FROM `'._DB_PREFIX_.'category_lang` cl
+                LEFT JOIN `'._DB_PREFIX_.'category` c ON (c.`id_category` = '.(int)$id_parent.')
+                WHERE cl.`id_category` = '.(int)$id_parent.'
+                AND cl.`id_lang` = '.(int)$id_lang);
     
             if (! sizeof($row)) {
                 // There is a problem with the category parent, let's try another category
                 $productCategory = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
-            			SELECT DISTINCT c.`id_category`, cl.`name`, 
+                        SELECT DISTINCT c.`id_category`, cl.`name`, 
                             c.`id_parent` FROM `'._DB_PREFIX_.'category_product` cp
-            			LEFT JOIN `'._DB_PREFIX_.'category_lang` cl ON (cp.`id_category` = cl.`id_category`)
-            			LEFT JOIN `'._DB_PREFIX_.'category` c ON (cp.`id_category` = c.`id_category`)
-            			WHERE cp.`id_product` = '.(int)$id_product.'
-			            AND cp.`id_category` NOT IN ('.$id_category.')
-            			AND cl.`id_lang` = '.(int)$id_lang.'
-			            ORDER BY level_depth DESC');
+                        LEFT JOIN `'._DB_PREFIX_.'category_lang` cl ON (cp.`id_category` = cl.`id_category`)
+                        LEFT JOIN `'._DB_PREFIX_.'category` c ON (cp.`id_category` = c.`id_category`)
+                        WHERE cp.`id_product` = '.(int)$id_product.'
+                        AND cp.`id_category` NOT IN ('.$id_category.')
+                        AND cl.`id_lang` = '.(int)$id_lang.'
+                        ORDER BY level_depth DESC');
                  
                 if (! sizeof($productCategory)) {
                     return array();
@@ -1685,8 +1677,8 @@ class ShoppingFluxExport extends Module
                                 $cartCarrierId = $cartLoaded->id_carrier;
                             
                                 $sql = "UPDATE " . _DB_PREFIX_ . "orders o
-                            			SET o.id_carrier = " . $cartCarrierId . "
-                            			WHERE o.id_order = " . $orderExists['id_order'];
+                                        SET o.id_carrier = " . $cartCarrierId . "
+                                        WHERE o.id_order = " . $orderExists['id_order'];
                                 Db::getInstance()->execute($sql);
                             
                                 // Re set the prices, and notify ShoppingFlux
@@ -2594,8 +2586,8 @@ class ShoppingFluxExport extends Module
         
         $actual_configuration = unserialize(Configuration::get('SHOPPING_FLUX_SHIPPING_MATCHING'));
 
-        $carrier_to_load = isset($actual_configuration[base64_encode(Tools::safeOutput((string)$order->ShippingMethod))]) ?
-                (int)$actual_configuration[base64_encode(Tools::safeOutput((string)$order->ShippingMethod))] :
+        $carrier_to_load = isset($actual_configuration[base64_encode(Tools::safeOutput(Tools::strtolower((string)$order->ShippingMethod)))]) ?
+                (int)$actual_configuration[base64_encode(Tools::safeOutput(Tools::strtolower((string)$order->ShippingMethod)))] :
                 (int)Configuration::get('SHOPPING_FLUX_CARRIER');
 
         $carrier = Carrier::getCarrierByReference($carrier_to_load);
@@ -2726,7 +2718,7 @@ class ShoppingFluxExport extends Module
         $cart->secure_key = md5(uniqid(rand(), true));
 
         $actual_configuration = unserialize(Configuration::get('SHOPPING_FLUX_SHIPPING_MATCHING'));
-        
+        $shipping_method = Tools::strtolower($shipping_method);     // uniformise using lowercase only
         SfLogger::getInstance()->log(SF_LOG_ORDERS, 'Retrieving carrier, shipping method = '.$shipping_method.', configured carrier reference = '.Configuration::get('SHOPPING_FLUX_CARRIER'), $doEchoLog);
         $carrier_to_load = isset($actual_configuration[base64_encode(Tools::safeOutput($shipping_method))]) ?
             (int)$actual_configuration[base64_encode(Tools::safeOutput($shipping_method))] :
@@ -3139,9 +3131,9 @@ class ShoppingFluxExport extends Module
                 if ($shop['active']) {
                     // Check only if in all shops the module is active
                     $sql = 'SELECT id_module FROM `' . _DB_PREFIX_ . 'module_shop` 
-					        WHERE id_module=(SELECT id_module 
-					        FROM `' . _DB_PREFIX_ . 'module` WHERE name="' . pSQL($this->name) . '")
-				            AND id_shop=' . pSQL((int)$shop['id_shop']);
+                            WHERE id_module=(SELECT id_module 
+                            FROM `' . _DB_PREFIX_ . 'module` WHERE name="' . pSQL($this->name) . '")
+                            AND id_shop=' . pSQL((int)$shop['id_shop']);
                     $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
                     if (!count($result)) {
                         $isModInactive = true;
@@ -3675,6 +3667,48 @@ class ShoppingFluxExport extends Module
             return false;
         } else {
             return $result->WSI2_AdressePointRelaisResult;
+        }
+    }
+
+    public function getCarriersFromSF($to_lower = true)
+    {
+        $sf_carriers_xml = $this->_callWebService('GetCarriers');
+        if (!isset($sf_carriers_xml->Response->Carriers->Carrier[0])) {
+            return false;
+        }
+
+        $sf_carriers = array();
+        foreach ($sf_carriers_xml->Response->Carriers->Carrier as $carrier) {
+            if ($to_lower) {
+                $sf_carriers[] = Tools::strtolower((string)$carrier);    // uniformise using lowercase only
+            } else {
+                $sf_carriers[] = (string)$carrier;  // legacy used by migrateToNewCarrierMatching
+            }
+        }
+
+        return $sf_carriers;
+    }
+
+    /**
+     * used by Upgrade-4.6.2.php to migrate legacy matching carriers to new matching (all carrier names in lowercase)
+     *
+     */
+    public function migrateToNewCarrierMatching()
+    {
+        $matching_carriers     = unserialize(Configuration::get('SHOPPING_FLUX_SHIPPING_MATCHING'));
+        $new_matching_carriers = array();
+        $sf_carriers           = $this->getCarriersFromSF(false);
+        if (!empty($sf_carriers)) {
+            foreach ($sf_carriers as $sf_carrier) {
+                $existing_hash = base64_encode(Tools::safeOutput($sf_carrier));
+                $new_hash      = base64_encode(Tools::safeOutput(Tools::strtolower($sf_carrier)));
+                $id_carrier    = (int)Configuration::get('SHOPPING_FLUX_CARRIER');
+                if (isset($matching_carriers[$existing_hash])) {
+                    $id_carrier = $matching_carriers[$existing_hash];
+                }
+                $new_matching_carriers[$new_hash] = $id_carrier;
+            }
+            Configuration::updateValue('SHOPPING_FLUX_SHIPPING_MATCHING', serialize($new_matching_carriers));
         }
     }
 
