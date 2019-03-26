@@ -570,11 +570,11 @@ class ShoppingFluxExport extends Module
         // Check if matching carriers have inconsistencies
         if (!$this->checkCarriersInconsistencies()) {
             // Show a warning message when there is an inconsistency with carriers
-            $warnings[] = $this->l('One of the carrier used for ShoppingFlux\'s orders has been removed or disabled. Please check and save the "Carriers Matching" configuration.');
+            $warnings[] = $this->l('One of the carrier used for ShoppingFlux\'s orders has been removed or disabled. Please check and save the Carriers Matching configuration.');
         }
         if (!$this->checkDefaultCarrierConsistency()) {
             // Show a warning message when there is an inconsistency with carriers
-            $warnings[] = $this->l('The default carrier used for ShoppingFlux\'s orders has been removed or disabled. Please check and save the "Parameters" configuration.');
+            $warnings[] = $this->l('The default carrier used for ShoppingFlux\'s orders has been removed or disabled. Please check and save the Parameters configuration.');
         }
         if (empty($warnings)) {
             return '';
@@ -3211,7 +3211,7 @@ class ShoppingFluxExport extends Module
             $coreFields[] = $key;
         }
         
-        foreach ($overrideProductFields as $key => $value) {
+        foreach (array_keys($overrideProductFields) as $key) {
             if (!in_array($key, $coreFields)) {
                 $newFields[] = $key;
             }

@@ -29,11 +29,11 @@
 		{if $warnings|is_array}
 			{foreach from=$warnings item=warning name=warning}
 				<ul>
-					<li>{$warning}</li>
+					<li>{$warning|escape:'htmlall':'UTF-8'}</li>
 				</ul>
 			{/foreach}
 		{else}
-			{$warning}
+			{$warning|escape:'htmlall':'UTF-8'}
 		{/if}
 	</div>
 </div>

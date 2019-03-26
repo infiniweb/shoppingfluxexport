@@ -45,8 +45,8 @@ $_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_c9d7eedc8be4380c021
 $_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_944eb62ed1a48750a399825e633f420e'] = 'Matching transporteurs';
 $_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_189ef27ecdec3868dbf25f2a8b1650f8'] = 'Associez les transporteurs des places de marché à vos transporteurs Prestashop';
 $_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_d9b6d613daaa5fee5c15b0af367af6b0'] = 'Votre flux';
-$_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_efae680468f9604652bfe0a893c66722'] = 'Un des transporteurs utilisé pour ShoppingFlux a été supprimé ou désactivé sur votre boutique. Merci de vérifier et de sauvegarder la configuration \"Matching transporteurs\".';
-$_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_cf9ded082778e321dab45c8a67e6856f'] = 'La transporteur par défaut  utilisé pour ShoppingFlux a été supprimé ou désactivé sur votre boutique. Merci de vérifier et de sauvegarder la configuration \"Paramètres\".';
+$_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_efae680468f9604652bfe0a893c66722'] = 'Un des transporteurs utilisé pour ShoppingFlux a été supprimé ou désactivé sur votre boutique. Merci de vérifier et de sauvegarder la configuration Matching transporteurs.';
+$_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_cf9ded082778e321dab45c8a67e6856f'] = 'La transporteur par défaut  utilisé pour ShoppingFlux a été supprimé ou désactivé sur votre boutique. Merci de vérifier et de sauvegarder la configuration Paramètres.';
 $_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_4932a1a59df32d11f06092769a87ff3f'] = 'Aucun champ supplémentaire trouvé sur votre site';
 $_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_025fe640fe054b1f626a9c1b058fefee'] = 'Sélectionnez les champs supplémentaires à exporter';
 $_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_1f314c1480805fcdd50f9188f930d804'] = 'Nombre de produits sujets à l\'export';
