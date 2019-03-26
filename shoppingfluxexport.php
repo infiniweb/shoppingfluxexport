@@ -566,19 +566,20 @@ class ShoppingFluxExport extends Module
 
     protected function _getWarnings()
     {
-        $warnings = "";
+        $warnings = array();
         // Check if matching carriers have inconsistencies
         if (!$this->checkCarriersInconsistencies()) {
             // Show a warning message when there is an inconsistency with carriers
-            $warning = $this->l('One of the carrier used for ShoppingFlux\'s orders has been removed or disabled. Please check and save the "Carriers Matching" configuration.');
-            $warnings .= $this->_formatWarning($warning);
+            $warnings[] = $this->l('One of the carrier used for ShoppingFlux\'s orders has been removed or disabled. Please check and save the "Carriers Matching" configuration.');
         }
         if (!$this->checkDefaultCarrierConsistency()) {
             // Show a warning message when there is an inconsistency with carriers
-            $warning = $this->l('The default carrier used for ShoppingFlux\'s orders has been removed or disabled. Please check and save the "Parameters" configuration.');
-            $warnings .= $this->_formatWarning($warning);
+            $warnings[] = $this->l('The default carrier used for ShoppingFlux\'s orders has been removed or disabled. Please check and save the "Parameters" configuration.');
         }
-        return $warnings;
+        if (empty($warnings)) {
+            return '';
+        }
+        return $this->_formatWarning($warnings);
     }
 
     /**
@@ -586,31 +587,16 @@ class ShoppingFluxExport extends Module
      *
      * For PrestaShop >= 1.6.1, the method displayWarning() is called
      */
-    protected function _formatWarning($warning)
+    protected function _formatWarning($warnings)
     {
         if (version_compare(_PS_VERSION_, '1.6.1', '>=')) {
-            return $this->displayWarning($warning);
+            return $this->displayWarning($warnings);
         }
 
-        $output = '
-        <div class="bootstrap">
-        <div class="module_warning alert alert-warning" >
-            <button type="button" class="close" data-dismiss="alert">&times;</button>';
-
-        if (is_array($warning)) {
-            $output .= '<ul>';
-            foreach ($warning as $msg) {
-                $output .= '<li>'.$msg.'</li>';
-            }
-            $output .= '</ul>';
-        } else {
-            $output .= $warning;
-        }
-
-        // Close div openned previously
-        $output .= '</div></div>';
-
-        return $output;
+        $this->context->smarty->assign(array(
+            'warnings' => $warnings
+        ));
+        return $this->display(__FILE__, 'views/templates/admin/warning.tpl');
     }
 
     /* Form record */
