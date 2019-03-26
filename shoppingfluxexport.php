@@ -260,7 +260,7 @@ class ShoppingFluxExport extends Module
         $sqlLike = "";
         foreach ($keysBaseNames as $aName) {
             $sqlLike = $sqlLike !== "" ? $sqlLike." OR " : "";
-            $sqlLike .= "configuration.`name` LIKE '".$aName."%'";
+            $sqlLike .= "configuration.`name` LIKE '".pSQL($aName)."%'";
         }
 
         // Get all configuration variables for CRON_TIME
@@ -411,7 +411,7 @@ class ShoppingFluxExport extends Module
         if (version_compare(_PS_VERSION_, '1.5', '>')) {
             $html .= $this->defaultTokenConfigurationView();
         }
-        $html .= $this->defaultInformationView($configuration);
+        $html .= $this->defaultInformationView();
 
         return $html;
     }
@@ -628,7 +628,7 @@ class ShoppingFluxExport extends Module
 
             $configuration['SHOPPING_FLUX_XML_SHOP_ID'] = Configuration::getGlobalValue('SHOPPING_FLUX_XML_SHOP_ID');
 
-            foreach ($configuration as $key => $val) {
+            foreach (array_keys($configuration) as $key) {
                 $value = Tools::getValue($key, '');
                 $value = $value == 'on' ? 'checked' : $value;
                 if ($key === "SHOPPING_FLUX_XML_SHOP_ID") {
@@ -1362,7 +1362,8 @@ class ShoppingFluxExport extends Module
     {
         $ret = '<uri-categories>';
 
-        foreach ($this->_getProductCategoriesFull($product->id, $configuration['PS_LANG_DEFAULT']) as $key => $categories) {
+        $productCategories = $this->_getProductCategoriesFull($product->id, $configuration['PS_LANG_DEFAULT']);
+        foreach (array_keys($productCategories) as $key) {
             $ret .= '<uri><![CDATA['.$link->getCategoryLink($key, null, $configuration['PS_LANG_DEFAULT']).']]></uri>';
         }
 
@@ -1721,7 +1722,7 @@ class ShoppingFluxExport extends Module
                                 WHERE o.id_customer = c.id_customer
                                 AND c.email = 'do-not-send@alerts-shopping-flux.com'
                                 AND a.id_address = o.id_address_delivery
-                                AND a.alias LIKE '" . $aliasAddress . "'
+                                AND a.alias LIKE '" . pSQL($aliasAddress) . "'
                                 ORDER BY o.id_order DESC
                             ");
                             
@@ -1736,8 +1737,8 @@ class ShoppingFluxExport extends Module
                                 $cartCarrierId = $cartLoaded->id_carrier;
                             
                                 $sql = "UPDATE " . _DB_PREFIX_ . "orders o
-                            			SET o.id_carrier = " . $cartCarrierId . "
-                            			WHERE o.id_order = " . $orderExists['id_order'];
+                            			SET o.id_carrier = " . (int)$cartCarrierId . "
+                            			WHERE o.id_order = " . (int)$orderExists['id_order'];
                                 Db::getInstance()->execute($sql);
                             
                                 // Re set the prices, and notify ShoppingFlux
@@ -1769,7 +1770,7 @@ class ShoppingFluxExport extends Module
                             $current_customer = new Customer((int)$id_customer);
         
                             if ($id_address_shipping && $id_address_billing && $id_customer) {
-                                $cart = $this->_getCart($id_customer, $id_address_billing, $id_address_shipping, $order->Products, (string)$order->Currency, (string)$order->ShippingMethod, $order->TotalFees, $currentToken['id_lang'], $doEchoLog);
+                                $cart = $this->_getCart($id_customer, $id_address_billing, $id_address_shipping, $order->Products, (string)$order->Currency, (string)$order->ShippingMethod, $currentToken['id_lang'], $doEchoLog);
             
                                 if ($cart) {
                                     SfLogger::getInstance()->log(SF_LOG_ORDERS, 'Cart '.$cart->id.' successfully built', $doEchoLog);
@@ -2567,7 +2568,7 @@ class ShoppingFluxExport extends Module
                 'unit_price_tax_excl'  => (float)((float)$product->Price / (1 + ($tax_rate / 100))),
                 'original_product_price' => $original_product_price,
             );
-            Db::getInstance()->update('order_detail', $updateOrderDetail, '`id_order` = '.(int)$id_order_from_reference.' AND `product_id` = '.(int)$skus[0].' AND `product_attribute_id` = '.$id_product_attribute);
+            Db::getInstance()->update('order_detail', $updateOrderDetail, '`id_order` = '.(int)$id_order_from_reference.' AND `product_id` = '.(int)$skus[0].' AND `product_attribute_id` = '.(int)$id_product_attribute);
             
             if ($tax_rate > 0) {
                 $updateOrderDetailTax = array(
@@ -2743,7 +2744,7 @@ class ShoppingFluxExport extends Module
         }
 
         $updatePayment = array('amount' => (float)$order->TotalAmount);
-        Db::getInstance()->update('order_payment', $updatePayment, '`order_reference` = "'.$reference_order.'"');
+        Db::getInstance()->update('order_payment', $updatePayment, '`order_reference` = "'.pSQL($reference_order).'"');
 
         return $idOrdersList;
     }
@@ -2786,7 +2787,7 @@ class ShoppingFluxExport extends Module
      * Fake cart creation
      */
 
-    protected function _getCart($id_customer, $id_address_billing, $id_address_shipping, $productsNode, $currency, $shipping_method, $fees, $id_lang = false, $doEchoLog = false)
+    protected function _getCart($id_customer, $id_address_billing, $id_address_shipping, $productsNode, $currency, $shipping_method, $id_lang = false, $doEchoLog = false)
     {
         $cart = new Cart();
         $cart->id_customer = $id_customer;
@@ -2898,7 +2899,7 @@ class ShoppingFluxExport extends Module
             if ($isAdvStockEnabled && !$isMarketPlaceExpedited) {
                 // When advanced stock management is enabled, we do not force the product quantity.
                 $idAttribute = isset($skus[1]) ? $skus[1] : 0;
-                $warehouseIds = $this->getAvailableWarehouses($skus[0], $idAttribute, (int)$product->Quantity, $idShop);
+                $warehouseIds = $this->getAvailableWarehouses($skus[0], $idAttribute, (int)$product->Quantity);
                 if (empty($warehouseIds)) {
                     SfLogger::getInstance()->log(SF_LOG_ORDERS, "No warehouse found with a quantity available for product ".$skus[0].", attribute = ".$idAttribute);
                     // No warehouse found with a quantity available for this product
@@ -2990,7 +2991,7 @@ class ShoppingFluxExport extends Module
      * @param  integer $idShop
      * @return array               List of wharehouse ids with available quantity
      */
-    protected function getAvailableWarehouses($idProduct, $idAttribute, $quantityOrdered, $idShop)
+    protected function getAvailableWarehouses($idProduct, $idAttribute, $quantityOrdered)
     {
         $selectedWarehouses = array();
         $warehouses = array();
@@ -3210,7 +3211,6 @@ class ShoppingFluxExport extends Module
     protected function getOverrideFields()
     {
         // Load core Product info
-        
         static $definition;
         
         // Load override Product info
@@ -3221,7 +3221,7 @@ class ShoppingFluxExport extends Module
         $productCoreFields = ProductCore::$definition['fields'];
         $coreFields = array();
         
-        foreach ($productCoreFields as $key => $value) {
+        foreach (array_keys($productCoreFields) as $key) {
             $coreFields[] = $key;
         }
         
@@ -3324,7 +3324,7 @@ class ShoppingFluxExport extends Module
      * @param $configuration
      *
      */
-    protected function defaultInformationView($configuration)
+    protected function defaultInformationView()
     {
         $html = '<fieldset>';
         $html .= '<legend>'.$this->l('Prerequisites').'</legend>';
@@ -3817,7 +3817,7 @@ class ShoppingFluxExport extends Module
             // Get corresonding method
             $method = Db::getInstance()->getValue("SELECT `id_mr_method`
                                                     FROM `" . _DB_PREFIX_ . "mr_method`
-                                                    WHERE `id_carrier`=" . $carrier->id . "
+                                                    WHERE `id_carrier`=" . (int)$carrier->id . "
                                                     ORDER BY `id_mr_method` DESC");
             if (!empty($method)) {
                 // Depending of the marketplace, the length of the relay ID is not the same. (5 digits, 6 digits).

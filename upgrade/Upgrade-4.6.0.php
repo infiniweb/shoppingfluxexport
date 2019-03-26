@@ -30,7 +30,6 @@ if (!defined('_PS_VERSION_')) {
 
 function upgrade_module_4_6_0($object)
 {
-
     // Used to add the shop ID in the feed name (when generating the feed.xml file)
     // The option is not enabled for existing install
     Configuration::updateGlobalValue('SHOPPING_FLUX_XML_SHOP_ID', false);
