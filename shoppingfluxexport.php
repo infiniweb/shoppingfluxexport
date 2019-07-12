@@ -128,7 +128,6 @@ class ShoppingFluxExport extends Module
                 !Configuration::updateValue('SHOPPING_FLUX_REF', '', false, null, $shop['id_shop']) ||
                 !Configuration::updateValue('SHOPPING_FLUX_LOGIN', '', false, null, $shop['id_shop']) ||
                 !Configuration::updateValue('SHOPPING_FLUX_MULTITOKEN', 0, false, null, $shop['id_shop']) ||
-                !Configuration::updateValue('SHOPPING_FLUX_INDEX', Tools::getCurrentUrlProtocolPrefix() . $shop['domain'] . $shop['uri'], false, null, $shop['id_shop']) ||
                 !Configuration::updateValue('SHOPPING_FLUX_STOCKS', '', false, null, $shop['id_shop']) ||
                 !Configuration::updateValue('SHOPPING_FLUX_PACKS', '', false, null, $shop['id_shop']) ||
                 !Configuration::updateValue('SHOPPING_FLUX_PASSES', '300', false, null, $shop['id_shop']) ||
@@ -152,7 +151,6 @@ class ShoppingFluxExport extends Module
                      !Configuration::updateValue('SHOPPING_FLUX_LOGIN', '') ||
                      !Configuration::updateValue('SHOPPING_FLUX_REF', '') ||
                      !Configuration::updateValue('SHOPPING_FLUX_MULTITOKEN', 0) ||
-                     !Configuration::updateValue('SHOPPING_FLUX_INDEX', Tools::getCurrentUrlProtocolPrefix().$shop['domain'].$shop['uri']) ||
                      !Configuration::updateValue('SHOPPING_FLUX_STOCKS', '') ||
                      !Configuration::updateValue('SHOPPING_FLUX_PACKS', '') ||
                      !Configuration::updateValue('SHOPPING_FLUX_PASSES', '300') ||
@@ -226,7 +224,6 @@ class ShoppingFluxExport extends Module
                 !Configuration::deleteByName('SHOPPING_FLUX_STATUS_CANCELED') ||
                 !Configuration::deleteByName('SHOPPING_FLUX_LOGIN') ||
                 !Configuration::deleteByName('SHOPPING_FLUX_REF') ||
-                !Configuration::deleteByName('SHOPPING_FLUX_INDEX') ||
                 !Configuration::deleteByName('SHOPPING_FLUX_STOCKS') ||
                 !Configuration::deleteByName('SHOPPING_FLUX_PACKS') ||
                 !Configuration::deleteByName('SHOPPING_FLUX_SHIPPING_MATCHING') ||
@@ -392,7 +389,7 @@ class ShoppingFluxExport extends Module
 
         $configuration = Configuration::getMultiple(array('SHOPPING_FLUX_TRACKING',
                     'SHOPPING_FLUX_ORDERS', 'SHOPPING_FLUX_STATUS_SHIPPED', 'SHOPPING_FLUX_STATUS_CANCELED', 'SHOPPING_FLUX_LOGIN',
-                    'SHOPPING_FLUX_STOCKS', 'SHOPPING_FLUX_PACKS', 'SHOPPING_FLUX_INDEX', 'PS_LANG_DEFAULT', 'SHOPPING_FLUX_CARRIER',
+                    'SHOPPING_FLUX_STOCKS', 'SHOPPING_FLUX_PACKS', 'PS_LANG_DEFAULT', 'SHOPPING_FLUX_CARRIER',
                     'SHOPPING_FLUX_IMAGE', 'SHOPPING_FLUX_SHIPPED', 'SHOPPING_FLUX_CANCELED', 'SHOPPING_FLUX_SHIPPING_MATCHING',
                     'SHOPPING_FLUX_STATE_MP_EXP', 'SHOPPING_FLUX_PASSES'));
         
